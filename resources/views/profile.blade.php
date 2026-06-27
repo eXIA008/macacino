@@ -8,8 +8,8 @@
   <main class="lib-main">
     <header class="lib-header">
       <div>
-        <h1 class="lib-title">Profil Saya</h1>
-        <p class="lib-subtitle">Kelola keamanan akun Anda.</p>
+        <h1 class="lib-title">My Profile</h1>
+        <p class="lib-subtitle">Manage your account security.</p>
       </div>
     </header>
 
@@ -22,6 +22,12 @@
             <label class="form-label">Username</label>
             <input type="text" value="{{ Auth::user()->username }}" class="form-input" readonly style="background-color: var(--bg-secondary); cursor: not-allowed; color: var(--text-muted);">
             <p style="font-size: 12px; color: var(--text-muted); margin-top: 6px;">* Hak paten sistem: Username tidak dapat diubah.</p>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Email</label>
+            <input type="email" value="{{ Auth::user()->email }}" class="form-input" readonly style="background-color: var(--bg-secondary); cursor: not-allowed; color: var(--text-muted);">
+            <p style="font-size: 12px; color: var(--text-muted); margin-top: 6px;">* Hak paten sistem: Email tidak dapat diubah.</p>
           </div>
 
           <div class="form-group" style="margin-top: 20px;">

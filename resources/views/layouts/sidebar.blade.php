@@ -22,7 +22,7 @@
       <a href="/notes" class="lib-nav-item {{ request()->is('notes') ? 'active' : '' }}" id="nav-notes">📝 Notes & Vocabulary</a>
       <a href="/profile" class="lib-nav-item {{ request()->is('profile') ? 'active' : '' }}" id="nav-profile">
           <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="margin-right: 2px;"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
-          Profil Saya
+          My Profile
       </a>
     </div>
 
