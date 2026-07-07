@@ -28,11 +28,28 @@ document.addEventListener('DOMContentLoaded', () => {
   bindDeleteDocument();
 });
 
-// Load Documents 
+// Skeleton HTML
+const skeletonHTML = Array.from({length: 6}, () => `
+  <div class="doc-card doc-card-skeleton">
+    <div class="skeleton-block" style="height:48px; width:48px; border-radius:var(--radius-lg); margin-bottom:12px;"></div>
+    <div class="skeleton-block" style="height:18px; width:70%; margin-bottom:8px;"></div>
+    <div class="skeleton-block" style="height:4px; width:100%; border-radius:4px; margin-bottom:8px;"></div>
+    <div class="skeleton-block" style="height:12px; width:40%;"></div>
+  </div>
+`).join('');
+
+// Load Documents
 async function loadDocuments() {
+  // Show skeleton
+  docGrid.insertAdjacentHTML('beforeend', skeletonHTML);
+  emptyState.hidden = true;
+
   try {
     const res = await api.get('/web-api/documents/');
     allDocuments = res.data || [];
+
+    // Remove skeleton
+    docGrid.querySelectorAll('.doc-card-skeleton').forEach(el => el.remove());
     
     const urlParams = new URLSearchParams(window.location.search);
     const filter = urlParams.get('filter');
@@ -53,6 +70,8 @@ async function loadDocuments() {
     renderDocuments(filteredDocs);
     setActiveNav(filter);
   } catch (err) {
+    docGrid.querySelectorAll('.doc-card-skeleton').forEach(el => el.remove());
+    emptyState.hidden = false;
     showToast('Gagal memuat dokumen. Cek koneksi.', 'error');
   }
 }

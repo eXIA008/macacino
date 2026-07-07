@@ -10,6 +10,7 @@ let isRendering   = false;
 let docData       = null;
 let currentHighlightColor = 'rgba(255, 255, 0, 0.7)';
 let currentPageNotes = [];
+let cachedHighlights = null;
 
 const DOCUMENT_ID = window.DOCUMENT_ID;
 
@@ -228,16 +229,19 @@ function applySavedHighlightsToText(notes) {
 
 async function loadSidebarNotes(pageNum) {
   try {
-    const res  = await fetch(`/web-api/highlights/document/${DOCUMENT_ID}`);
-    const json = await res.json();
+    if (!cachedHighlights) {
+      const res  = await fetch(`/web-api/highlights/document/${DOCUMENT_ID}`);
+      const json = await res.json();
+      cachedHighlights = json.data || [];
+    }
     const hlList  = document.getElementById('hl-list');
     const hlCount = document.getElementById('hl-count');
 
-    if (json.data && json.data.length > 0) {
-      if (hlCount) hlCount.textContent = json.data.length;
+    if (cachedHighlights.length > 0) {
+      if (hlCount) hlCount.textContent = cachedHighlights.length;
 
       let html = '';
-      json.data.forEach(note => {
+      cachedHighlights.forEach(note => {
         let badgeColor = note.color;
         if (!badgeColor || badgeColor === 'blue') badgeColor = 'rgba(255, 255, 0, 0.7)';
 
@@ -324,7 +328,7 @@ async function loadSidebarNotes(pageNum) {
       });
 
       if (hlList) hlList.innerHTML = html;
-      currentPageNotes = json.data.filter(n => n.page_number === currentPage);
+      currentPageNotes = cachedHighlights.filter(n => n.page_number === pageNum);
       applySavedHighlightsToText(currentPageNotes);
 
     } else {
@@ -395,9 +399,10 @@ function bindDeleteNotes() {
                   method: 'DELETE',
                   headers: csrfToken ? { 'X-CSRF-TOKEN': csrfToken } : {}
               });
-              if (res.ok) { 
+              if (res.ok) {
                   showToast('Note deleted successfully.', 'success');
-                  isRendering = false; renderPage(currentPage); 
+                  cachedHighlights = null;
+                  isRendering = false; renderPage(currentPage);
               } else throw new Error('Failed');
             } catch (err) { 
                 showToast('Failed to delete note.', 'error'); 
@@ -426,10 +431,18 @@ function bindDeleteAllNotes() {
                 btnAll.innerHTML = '⏳'; btnAll.disabled = true;
                 try {
                     const csrfToken = getCsrfToken();
-                    const headers = csrfToken ? { 'X-CSRF-TOKEN': csrfToken } : {};
                     const ids = Array.from(deleteBtns).map(b => b.getAttribute('data-id'));
-                    await Promise.all(ids.map(id => fetch(`/web-api/highlights/${id}`, { method: 'DELETE', headers })));
+                    const res = await fetch('/web-api/highlights/bulk-delete', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': csrfToken || ''
+                        },
+                        body: JSON.stringify({ ids })
+                    });
+                    if (!res.ok) throw new Error('Failed');
                     showToast('All notes cleared successfully.', 'success');
+                    cachedHighlights = null;
                     isRendering = false; renderPage(currentPage);
                 } catch (err) {
                     showToast('Failed to delete some notes.', 'error');
@@ -841,15 +854,16 @@ const saveNoteBtn = document.getElementById('save-ai-note-btn');
                 })
               });
 
-              if (res.ok) { 
-                  saveNoteBtn.innerHTML = '✅ Saved'; 
+              if (res.ok) {
+                  saveNoteBtn.innerHTML = '✅ Saved';
                   showToast('Note saved successfully.', 'success');
                   const tempHl = document.querySelector('span.temp-highlight');
                   if(tempHl) {
                       tempHl.classList.remove('temp-highlight');
                       tempHl.classList.add('saved-highlight');
                   }
-                  isRendering = false; await renderPage(currentPage); 
+                  cachedHighlights = null;
+                  isRendering = false; await renderPage(currentPage);
               } 
               else throw new Error('Failed');
             } catch (error) { 

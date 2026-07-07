@@ -12,11 +12,14 @@ use App\Http\Resources\DocumentResource;
 
 class DocumentController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $docs = Document::where('user_id', Auth::id())
-            ->orderBy('created_at', 'desc')
-            ->get();
+        $query = Document::select('id', 'title', 'filename', 'total_pages', 'last_page', 'last_read_at', 'created_at')
+            ->where('user_id', Auth::id())
+            ->orderBy('created_at', 'desc');
+        $docs = $request->has('all')
+            ? $query->get()
+            : $query->limit(50)->get();
         return DocumentResource::collection($docs);
     }
 

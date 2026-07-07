@@ -23,7 +23,7 @@
     </div>
 
     <div class="doc-grid" id="doc-grid">
-      <div class="doc-empty" id="empty-state">
+      <div class="doc-empty" id="empty-state" hidden>
         <div class="empty-icon">📚</div>
         <h3>No documents yet</h3>
         <p>Upload a PDF to start reading and learning.</p>

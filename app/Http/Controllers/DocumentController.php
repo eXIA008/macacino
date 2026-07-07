@@ -10,12 +10,15 @@ use Illuminate\Support\Str;
 
 class DocumentController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         try {
-            $docs = Document::where('user_id', Auth::id())
-                            ->orderBy('created_at', 'desc')
-                            ->get();
+            $query = Document::select('id', 'title', 'filename', 'total_pages', 'last_page', 'last_read_at', 'created_at')
+                            ->where('user_id', Auth::id())
+                            ->orderBy('created_at', 'desc');
+            $docs = $request->has('all')
+                ? $query->get()
+                : $query->limit(50)->get();
             return response()->json(['data' => $docs, 'error' => null]);
         } catch (\Exception $e) {
             return response()->json(['data' => null, 'error' => $e->getMessage()], 500);

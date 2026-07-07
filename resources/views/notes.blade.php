@@ -29,12 +29,7 @@
       <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(400px, 1fr)); gap: 16px;">
         @foreach ($notes as $note)
             @php
-                
-                $details = [];
-                if (!empty($note->ai_details)) {
-                    $details = is_string($note->ai_details) ? json_decode($note->ai_details, true) : $note->ai_details;
-                }
-                
+                $details = $note->ai_details ?? [];
                 $grammar = $details['grammar'] ?? $note->ai_grammar ?? 'Vocabulary';
                 $tenseInfo = $details['tense_info'] ?? null;
                 $idiomNote = $details['idiom_note'] ?? null;

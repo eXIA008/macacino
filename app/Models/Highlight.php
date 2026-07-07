@@ -29,6 +29,7 @@ class Highlight extends Model
 
     protected $casts = [
         'ai_vocabulary' => 'array',
+        'ai_details' => 'array',
     ];
 
     public function document()

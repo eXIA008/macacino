@@ -146,12 +146,12 @@
         }
 
         window.addEventListener('load', () => {
-            @if(session('success')) showToast("{{ session('success') }}", "success"); @endif
-            @if(session('error')) showToast("{{ session('error') }}", "error"); @endif
-            @if(session('warning')) showToast("{{ session('warning') }}", "warning"); @endif
+            if (session('success')) showToast("{{ session('success') }}", "success");
+            if (session('error')) showToast("{{ session('error') }}", "error");
+            if (session('warning')) showToast("{{ session('warning') }}", "warning");
 
-                @if(session('welcome_user'))
-                    const username = "{{ session('welcome_user') }}";
+                if(session('welcome_user')) {
+                  const username = "{{ session('welcome_user') }}";
                     const overlay = document.getElementById('welcome-overlay');
                     const textEl = document.getElementById('welcome-text');
 
@@ -168,7 +168,7 @@
                         overlay.classList.remove('visible');
                         setTimeout(() => overlay.setAttribute('hidden', ''), 600);
                     }, 2800);
-                @endif
+                }
         });
     </script>
 

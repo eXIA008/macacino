@@ -39,18 +39,18 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/stats', function () {
         $userId = Auth::id();
-        $docs = Document::where('user_id', $userId)->get();
 
-        $total_words = Highlight::whereHas('document', function ($q) use ($userId) {
-            $q->where('user_id', $userId);
-        })->count();
+        // 1 query — docs + highlight count sekaligus, ga perlu load 2x
+        $docs = Document::where('user_id', $userId)
+            ->withCount('highlights')
+            ->get();
 
-        $finished_books = $docs->where('last_page', '>=', 'total_pages')->where('total_pages', '>', 0)->count();
+        $total_words = $docs->sum('highlights_count');
 
-        // 1. Hitung Streak Belajar Asli (Consecutive Days dari Highlights / Read Activity)
-        $highlightDates = Highlight::whereHas('document', function ($q) use ($userId) {
-            $q->where('user_id', $userId);
-        })
+        $finished_books = $docs->filter(fn($d) => $d->total_pages > 0 && $d->last_page >= $d->total_pages)->count();
+
+        // 2 queries — streak dates
+        $highlightDates = Highlight::whereIn('document_id', $docs->pluck('id'))
             ->selectRaw('DATE(created_at) as date')
             ->pluck('date')
             ->map(fn($d) => \Carbon\Carbon::parse($d)->toDateString());
@@ -83,14 +83,8 @@ Route::middleware('auth')->group(function () {
             }
         }
 
-        // 2. Hitung Distribusi Catatan per Buku
-        $books_with_notes = Document::where('user_id', $userId)
-            ->withCount('highlights')
-            ->get()
-            ->filter(function ($doc) {
-                return $doc->highlights_count > 0;
-            })
-            ->values();
+        // $docs udah punya highlights_count dari withCount
+        $books_with_notes = $docs->filter(fn($doc) => $doc->highlights_count > 0)->values();
 
         $doc_titles = json_encode($docs->pluck('title')->toArray());
         $doc_progress = json_encode($docs->map(function ($doc) {
@@ -126,6 +120,7 @@ Route::middleware('auth')->prefix('web-api')->group(function () {
     Route::get('/highlights/document/{id}', [HighlightController::class, 'getHighlights']);
     Route::post('/highlights', [HighlightController::class, 'createHighlight']);
     Route::post('/highlights/ai-note', [HighlightController::class, 'createAiNote']);
+    Route::post('/highlights/bulk-delete', [HighlightController::class, 'bulkDestroy']);
     Route::get('/highlights/{id}', [HighlightController::class, 'show']);
     Route::delete('/highlights/{id}', [HighlightController::class, 'destroy']);
 

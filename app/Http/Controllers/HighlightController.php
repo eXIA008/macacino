@@ -97,6 +97,20 @@ class HighlightController extends Controller
         }
     }
 
+    public function bulkDestroy(Request $request)
+    {
+        try {
+            $ids = $request->input('ids', []);
+            if (empty($ids)) {
+                return response()->json(['error' => 'No highlights selected'], 400);
+            }
+            Highlight::whereIn('id', $ids)->delete();
+            return response()->json(['message' => count($ids) . ' highlights deleted', 'error' => null]);
+        } catch (\Exception $e) {
+            return response()->json(['data' => null, 'error' => $e->getMessage()], 500);
+        }
+    }
+
     public function destroy($id)
     {
         try {

@@ -30,6 +30,11 @@ class Document extends Model
         return asset('storage/uploads/' . $this->filename);
     }
 
+    protected function serializeDate(\DateTimeInterface $date)
+    {
+        return $date->format('Y-m-d\TH:i:s\Z');
+    }
+
     public function user()
     {
         return $this->belongsTo(User::class, 'user_id');
